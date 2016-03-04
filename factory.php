@@ -1,5 +1,6 @@
 <?php
 require "plugin/PHPMailer-master/PHPMailerAutoload.php";
+include "database.php";
 
 interface Setting
 {
@@ -42,7 +43,7 @@ class Email_mail implements Setting
     }
 }
 
-class Email_yandex implements Setting
+class Email_gmail implements Setting
 {
     public function send($email)
     {
@@ -51,7 +52,7 @@ class Email_yandex implements Setting
 
         $message->isSMTP();
 
-        $message->Host = 'smtp.mail.ru';
+        $message->Host = 'smtp.yandex.ua';
 
         $message->SMTPAuth = true;
         $message->Username = 'marcus071';
@@ -60,9 +61,10 @@ class Email_yandex implements Setting
         $message->Port = '465';
 
         $message->CharSet = 'UTF-8';
-        $message->From = 'marcus071@mail.ru';
+        $message->From = 'marcus071@yandex.ua';
         $message->FromName = 'Богдан';
         $message->addAddress("$email",'Bogdan');
+        $message->addAddress("marcus071@yandex.ru",'Bogdan');
         $message->isHTML(true);
 
         $message->Subject = 'Пробное сообщение';
@@ -80,18 +82,22 @@ class Email_yandex implements Setting
 
 class Factory
 {
-    public function email_e()
+    public static function e_email()
     {
-        $a = 1;
-        if($a=1){
-            $q = new Email_mail();
-            $q ->send('bogdan.cifrovoi@gmail.com');
-        }else{
-            $r = new Email_yandex();
-            $r ->send('bogdan.cifrovoi@gmail.com');
+        $db = DB::getInstance()->em_email();
+        foreach ($db as $value){//print_r($value); - массив
+            preg_match('/@([a-z]).([a-z])+/',$value[0],$qwe);//print_r($qwe[0]); - @gmail, @mail
+            $val = substr($qwe[0],1);// echo $val."</ br>"; - gmail, mail
+            $class = "Email_". $val;
+            $obj = new $class;
+
+            return $obj-> send($value[0]);
         }
+
+
     }
 }
-
+//
 $q = new Factory();
-$q->email_e();
+$q->e_email();
+//var_dump($q->e_email());
